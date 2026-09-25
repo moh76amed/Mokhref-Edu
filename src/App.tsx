@@ -4,8 +4,9 @@ import { TimetableView } from './TimetableView'
 import { SubjectsManager } from './SubjectsManager'
 import { ClassesManager } from './ClassesManager'
 import { LevelsManager } from './LevelsManager'
+import { TeachersManager } from './TeachersManager'
 
-type Page = 'timetable' | 'subjects' | 'classes' | 'levels'
+type Page = 'timetable' | 'subjects' | 'classes' | 'levels' | 'teachers'
 
 function App() {
   const [page, setPage] = useState<Page>('timetable')
@@ -27,19 +28,25 @@ function App() {
             onClick={() => setPage('subjects')}
             style={page === 'subjects' ? activeTab : inactiveTab}
           >
-            إدارة المواد
+            المواد
           </button>
           <button
             onClick={() => setPage('classes')}
             style={page === 'classes' ? activeTab : inactiveTab}
           >
-            إدارة الأقسام
+            الأقسام
           </button>
           <button
             onClick={() => setPage('levels')}
             style={page === 'levels' ? activeTab : inactiveTab}
           >
-            إدارة السنوات
+            السنوات
+          </button>
+          <button
+            onClick={() => setPage('teachers')}
+            style={page === 'teachers' ? activeTab : inactiveTab}
+          >
+            الأساتذة
           </button>
         </div>
         <div style={{ width: 200 }}></div>
@@ -50,6 +57,7 @@ function App() {
         {page === 'subjects' && <SubjectsManager />}
         {page === 'classes' && <ClassesManager />}
         {page === 'levels' && <LevelsManager />}
+        {page === 'teachers' && <TeachersManager />}
       </div>
     </div>
   )
