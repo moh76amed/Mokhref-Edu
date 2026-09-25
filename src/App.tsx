@@ -3,8 +3,9 @@ import './App.css'
 import { TimetableView } from './TimetableView'
 import { SubjectsManager } from './SubjectsManager'
 import { ClassesManager } from './ClassesManager'
+import { LevelsManager } from './LevelsManager'
 
-type Page = 'timetable' | 'subjects' | 'classes'
+type Page = 'timetable' | 'subjects' | 'classes' | 'levels'
 
 function App() {
   const [page, setPage] = useState<Page>('timetable')
@@ -34,6 +35,12 @@ function App() {
           >
             إدارة الأقسام
           </button>
+          <button
+            onClick={() => setPage('levels')}
+            style={page === 'levels' ? activeTab : inactiveTab}
+          >
+            إدارة السنوات
+          </button>
         </div>
         <div style={{ width: 200 }}></div>
       </nav>
@@ -42,6 +49,7 @@ function App() {
         {page === 'timetable' && <TimetableView />}
         {page === 'subjects' && <SubjectsManager />}
         {page === 'classes' && <ClassesManager />}
+        {page === 'levels' && <LevelsManager />}
       </div>
     </div>
   )
