@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import './App.css'
+import { supabase } from './supabaseClient'
+import { LoginPage } from './LoginPage'
 import { TimetableView } from './TimetableView'
 import { TeacherTimetableView } from './TeacherTimetableView'
 import { SubjectsManager } from './SubjectsManager'
@@ -11,12 +13,52 @@ type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels'
 
 function App() {
   const [page, setPage] = useState<Page>('timetable')
+  const [session, setSession] = useState<any>(null)
+  const [checking, setChecking] = useState(true)
 
+  useEffect(() => {
+    // فحص الجلسة الحالية
+    supabase.auth.getSession().then(({ data }) => {
+      setSession(data.session)
+      setChecking(false)
+    })
+
+    // الاستماع لتغيّرات حالة الدخول
+    const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session)
+    })
+
+    return () => {
+      listener.subscription.unsubscribe()
+    }
+  }, [])
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+  }
+
+  // أثناء فحص الجلسة
+  if (checking) {
+    return (
+      <div style={{ padding: 50, textAlign: 'center', fontFamily: 'Arial', direction: 'rtl' }}>
+        جاري التحميل...
+      </div>
+    )
+  }
+
+  // إذا لم يكن مسجّلًا، اعرض صفحة الدخول
+  if (!session) {
+    return <LoginPage />
+  }
+
+  // مسجّل → اعرض النظام
   return (
     <div>
       <nav style={navStyle}>
-        <div style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20 }}>
-          Mokhref Edu
+        <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
+          <div style={{ fontWeight: 'bold', fontSize: 18 }}>
+            Mokhref Edu
+          </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button
@@ -56,7 +98,14 @@ function App() {
             الأساتذة
           </button>
         </div>
-        <div style={{ width: 120 }}></div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <div style={{ fontSize: 12, opacity: 0.8 }}>
+            {session.user.email}
+          </div>
+          <button onClick={handleLogout} style={logoutBtn}>
+            خروج
+          </button>
+        </div>
       </nav>
 
       <div style={{ padding: 20 }}>
@@ -101,6 +150,17 @@ const inactiveTab: React.CSSProperties = {
   borderRadius: 4,
   cursor: 'pointer',
   fontSize: 13
+}
+
+const logoutBtn: React.CSSProperties = {
+  background: '#dc3545',
+  color: 'white',
+  border: 'none',
+  padding: '6px 12px',
+  borderRadius: 4,
+  cursor: 'pointer',
+  fontSize: 13,
+  fontWeight: 'bold'
 }
 
 export default App
