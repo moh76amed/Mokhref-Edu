@@ -1,12 +1,13 @@
 import { useState } from 'react'
 import './App.css'
 import { TimetableView } from './TimetableView'
+import { TeacherTimetableView } from './TeacherTimetableView'
 import { SubjectsManager } from './SubjectsManager'
 import { ClassesManager } from './ClassesManager'
 import { LevelsManager } from './LevelsManager'
 import { TeachersManager } from './TeachersManager'
 
-type Page = 'timetable' | 'subjects' | 'classes' | 'levels' | 'teachers'
+type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers'
 
 function App() {
   const [page, setPage] = useState<Page>('timetable')
@@ -14,15 +15,21 @@ function App() {
   return (
     <div>
       <nav style={navStyle}>
-        <div style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 30 }}>
+        <div style={{ fontWeight: 'bold', fontSize: 20, marginLeft: 20 }}>
           Mokhref Edu
         </div>
-        <div style={{ display: 'flex', gap: 10 }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
           <button
             onClick={() => setPage('timetable')}
             style={page === 'timetable' ? activeTab : inactiveTab}
           >
-            جدول التوقيت
+            توقيت القسم
+          </button>
+          <button
+            onClick={() => setPage('teacherTimetable')}
+            style={page === 'teacherTimetable' ? activeTab : inactiveTab}
+          >
+            توقيت الأستاذ
           </button>
           <button
             onClick={() => setPage('subjects')}
@@ -49,11 +56,12 @@ function App() {
             الأساتذة
           </button>
         </div>
-        <div style={{ width: 200 }}></div>
+        <div style={{ width: 120 }}></div>
       </nav>
 
       <div style={{ padding: 20 }}>
         {page === 'timetable' && <TimetableView />}
+        {page === 'teacherTimetable' && <TeacherTimetableView />}
         {page === 'subjects' && <SubjectsManager />}
         {page === 'classes' && <ClassesManager />}
         {page === 'levels' && <LevelsManager />}
@@ -69,18 +77,19 @@ const navStyle: React.CSSProperties = {
   alignItems: 'center',
   background: '#1e293b',
   color: 'white',
-  padding: '12px 20px',
-  direction: 'rtl'
+  padding: '10px 16px',
+  direction: 'rtl',
+  gap: 10
 }
 
 const activeTab: React.CSSProperties = {
   background: '#3B82F6',
   color: 'white',
   border: 'none',
-  padding: '8px 16px',
+  padding: '7px 13px',
   borderRadius: 4,
   cursor: 'pointer',
-  fontSize: 14,
+  fontSize: 13,
   fontWeight: 'bold'
 }
 
@@ -88,10 +97,10 @@ const inactiveTab: React.CSSProperties = {
   background: 'transparent',
   color: 'white',
   border: '1px solid #475569',
-  padding: '8px 16px',
+  padding: '7px 13px',
   borderRadius: 4,
   cursor: 'pointer',
-  fontSize: 14
+  fontSize: 13
 }
 
 export default App
