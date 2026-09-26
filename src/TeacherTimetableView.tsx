@@ -38,11 +38,12 @@ export function TeacherTimetableView() {
   const [loading, setLoading] = useState(false)
 
   // جلب الأساتذة
-  useEffect(() => {
+    useEffect(() => {
     async function loadTeachers() {
       const { data } = await supabase
         .from('teachers')
         .select('id, first_name, last_name')
+        .eq('is_teacher', true)
         .order('last_name')
       setTeachers(data || [])
       if (data && data.length > 0) setSelectedTeacher(data[0].id)

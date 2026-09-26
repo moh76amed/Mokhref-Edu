@@ -26,11 +26,12 @@ export function TeachersManager() {
   const [dialogVariant, setDialogVariant] = useState<'confirm' | 'info' | 'danger'>('confirm')
   const [dialogOnConfirm, setDialogOnConfirm] = useState<(() => void) | null>(null)
 
-  async function loadTeachers() {
+    async function loadTeachers() {
     setLoading(true)
     const { data, error } = await supabase
       .from('teachers')
       .select('*')
+      .eq('is_teacher', true)
       .order('last_name')
     if (error) setError(error.message)
     setTeachers(data || [])
