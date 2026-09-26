@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from './supabaseClient'
 import { AddEntryForm } from './AddEntryForm'
+import { EditEntryForm } from './EditEntryForm'
 
 const DAYS = ['الأحد', 'الاثنين', 'الثلاثاء', 'الأربعاء', 'الخميس']
 
@@ -17,6 +18,8 @@ const TIME_SLOTS = Array.from({ length: 36 }, (_, i) => {
 
 type Entry = {
   id: number
+  teacher_id: string
+  class_id: number
   day_of_week: number
   start_slot: number
   duration_slots: number
@@ -34,6 +37,7 @@ export function TimetableView() {
   const [showForm, setShowForm] = useState(false)
   const [formDay, setFormDay] = useState<number>(0)
   const [formStartSlot, setFormStartSlot] = useState<number>(1)
+  const [editingEntry, setEditingEntry] = useState<Entry | null>(null)
 
   useEffect(() => {
     async function loadClasses() {
@@ -49,7 +53,7 @@ export function TimetableView() {
     setLoading(true)
     const { data } = await supabase
       .from('timetable_entries')
-      .select('id, day_of_week, start_slot, duration_slots, room, subject_id, subjects(name, color), teachers(first_name, last_name)')
+      .select('id, teacher_id, class_id, day_of_week, start_slot, duration_slots, room, subject_id, subjects(name, color), teachers(first_name, last_name)')
       .eq('class_id', selectedClass)
     setEntries((data as any) || [])
     setLoading(false)
@@ -75,6 +79,10 @@ export function TimetableView() {
     setFormDay(day)
     setFormStartSlot(slotIndex)
     setShowForm(true)
+  }
+
+  const handleEntryClick = (entry: Entry) => {
+    setEditingEntry(entry)
   }
 
   function openAddEmpty() {
@@ -138,7 +146,7 @@ export function TimetableView() {
               {DAYS.map((_, dayIdx) => {
                 if (isCoveredByPrevious(dayIdx, slot.index)) return null
 
-                const entry = getEntryAt(dayIdx, slot.index)
+                                const entry = getEntryAt(dayIdx, slot.index)
                 if (entry) {
                   return (
                     <td
@@ -148,8 +156,11 @@ export function TimetableView() {
                         ...cellStyle,
                         background: entry.subjects?.color || '#ddd',
                         color: 'white',
-                        fontWeight: 'bold'
+                        fontWeight: 'bold',
+                        cursor: 'pointer'
                       }}
+                      onClick={() => handleEntryClick(entry)}
+                      title="اضغط لتعديل أو حذف الحصة"
                     >
                       <div>{entry.subjects?.name}</div>
                       <div style={{ fontSize: 11, opacity: 0.9 }}>
@@ -182,6 +193,21 @@ export function TimetableView() {
             loadEntries()
           }}
           onCancel={() => setShowForm(false)}
+        />
+      )}
+      
+      {editingEntry && (
+        <EditEntryForm
+          entry={editingEntry}
+          onSaved={() => {
+            setEditingEntry(null)
+            loadEntries()
+          }}
+          onDeleted={() => {
+            setEditingEntry(null)
+            loadEntries()
+          }}
+          onCancel={() => setEditingEntry(null)}
         />
       )}
     </div>
