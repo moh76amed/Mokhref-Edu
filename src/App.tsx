@@ -8,8 +8,9 @@ import { SubjectsManager } from './SubjectsManager'
 import { ClassesManager } from './ClassesManager'
 import { LevelsManager } from './LevelsManager'
 import { TeachersManager } from './TeachersManager'
+import { SettingsPage } from './SettingsPage'
 
-type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers'
+type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers' | 'settings'
 
 function App() {
   const [page, setPage] = useState<Page>('timetable')
@@ -17,13 +18,11 @@ function App() {
   const [checking, setChecking] = useState(true)
 
   useEffect(() => {
-    // فحص الجلسة الحالية
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setChecking(false)
     })
 
-    // الاستماع لتغيّرات حالة الدخول
     const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session)
     })
@@ -37,7 +36,6 @@ function App() {
     await supabase.auth.signOut()
   }
 
-  // أثناء فحص الجلسة
   if (checking) {
     return (
       <div style={{ padding: 50, textAlign: 'center', fontFamily: 'Arial', direction: 'rtl' }}>
@@ -46,12 +44,10 @@ function App() {
     )
   }
 
-  // إذا لم يكن مسجّلًا، اعرض صفحة الدخول
   if (!session) {
     return <LoginPage />
   }
 
-  // مسجّل → اعرض النظام
   return (
     <div>
       <nav style={navStyle}>
@@ -60,7 +56,7 @@ function App() {
             Mokhref Edu
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
           <button
             onClick={() => setPage('timetable')}
             style={page === 'timetable' ? activeTab : inactiveTab}
@@ -97,9 +93,15 @@ function App() {
           >
             الأساتذة
           </button>
+          <button
+            onClick={() => setPage('settings')}
+            style={page === 'settings' ? activeTab : inactiveTab}
+          >
+            الإعدادات
+          </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ fontSize: 12, opacity: 0.8 }}>
+          <div style={{ fontSize: 11, opacity: 0.8 }}>
             {session.user.email}
           </div>
           <button onClick={handleLogout} style={logoutBtn}>
@@ -115,6 +117,7 @@ function App() {
         {page === 'classes' && <ClassesManager />}
         {page === 'levels' && <LevelsManager />}
         {page === 'teachers' && <TeachersManager />}
+        {page === 'settings' && <SettingsPage />}
       </div>
     </div>
   )
@@ -128,17 +131,18 @@ const navStyle: React.CSSProperties = {
   color: 'white',
   padding: '10px 16px',
   direction: 'rtl',
-  gap: 10
+  gap: 10,
+  flexWrap: 'wrap'
 }
 
 const activeTab: React.CSSProperties = {
   background: '#3B82F6',
   color: 'white',
   border: 'none',
-  padding: '7px 13px',
+  padding: '6px 11px',
   borderRadius: 4,
   cursor: 'pointer',
-  fontSize: 13,
+  fontSize: 12,
   fontWeight: 'bold'
 }
 
@@ -146,10 +150,10 @@ const inactiveTab: React.CSSProperties = {
   background: 'transparent',
   color: 'white',
   border: '1px solid #475569',
-  padding: '7px 13px',
+  padding: '6px 11px',
   borderRadius: 4,
   cursor: 'pointer',
-  fontSize: 13
+  fontSize: 12
 }
 
 const logoutBtn: React.CSSProperties = {
@@ -159,7 +163,7 @@ const logoutBtn: React.CSSProperties = {
   padding: '6px 12px',
   borderRadius: 4,
   cursor: 'pointer',
-  fontSize: 13,
+  fontSize: 12,
   fontWeight: 'bold'
 }
 
