@@ -109,3 +109,52 @@ code {
   padding: 4px 8px;
   background: var(--code-bg);
 }
+
+
+/* ============================================================
+   قواعد الطباعة
+   ============================================================ */
+@media print {
+  /* أخفِ كل شيء افتراضيًا */
+  body * {
+    visibility: hidden;
+  }
+
+  /* أظهر الجدول ومحيطه فقط */
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+
+  /* ضع الجدول أعلى الصفحة */
+  .print-area {
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    border: none !important;
+    padding: 0 !important;
+  }
+
+  /* أخفِ شريط التنقل وغيره */
+  .no-print {
+    display: none !important;
+  }
+
+  /* إلغاء قيود #root عند الطباعة */
+  #root {
+    width: 100% !important;
+    max-width: 100% !important;
+    border: none !important;
+    min-height: auto !important;
+    display: block !important;
+    text-align: right !important;
+  }
+
+  /* إخفاء حدود الصفحة في منطقة الطباعة */
+  .print-area {
+    border: none !important;
+    box-shadow: none !important;
+  }
+}

@@ -9,8 +9,9 @@ import { ClassesManager } from './ClassesManager'
 import { LevelsManager } from './LevelsManager'
 import { TeachersManager } from './TeachersManager'
 import { SettingsPage } from './SettingsPage'
+import { PrintTimetableView } from './PrintTimetableView'
 
-type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers' | 'settings'
+type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers' | 'settings' | 'print'
 
 function App() {
   const [page, setPage] = useState<Page>('timetable')
@@ -99,6 +100,12 @@ function App() {
           >
             الإعدادات
           </button>
+                    <button
+            onClick={() => setPage('print')}
+            style={page === 'print' ? activeTab : inactiveTab}
+          >
+            🖨️ طباعة
+          </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ fontSize: 11, opacity: 0.8 }}>
@@ -118,6 +125,7 @@ function App() {
         {page === 'levels' && <LevelsManager />}
         {page === 'teachers' && <TeachersManager />}
         {page === 'settings' && <SettingsPage />}
+        {page === 'print' && <PrintTimetableView />}
       </div>
     </div>
   )
