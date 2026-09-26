@@ -17,15 +17,17 @@ type Props = {
   classId: number
   onSaved: () => void
   onCancel: () => void
+  initialDay?: number
+  initialStartSlot?: number
 }
 
-export function AddEntryForm({ classId, onSaved, onCancel }: Props) {
+export function AddEntryForm({ classId, onSaved, onCancel, initialDay = 0, initialStartSlot = 1 }: Props) {
   const [subjects, setSubjects] = useState<any[]>([])
   const [teachers, setTeachers] = useState<any[]>([])
   const [subjectId, setSubjectId] = useState<number | null>(null)
   const [teacherId, setTeacherId] = useState<string>('')
-  const [day, setDay] = useState<number>(0)
-  const [startSlot, setStartSlot] = useState<number>(1)
+  const [day, setDay] = useState<number>(initialDay)
+  const [startSlot, setStartSlot] = useState<number>(initialStartSlot)
   const [duration, setDuration] = useState<number>(3)
   const [room, setRoom] = useState<string>('')
   const [error, setError] = useState<string>('')

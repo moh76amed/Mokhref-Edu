@@ -32,6 +32,8 @@ export function TimetableView() {
   const [entries, setEntries] = useState<Entry[]>([])
   const [loading, setLoading] = useState(false)
   const [showForm, setShowForm] = useState(false)
+  const [formDay, setFormDay] = useState<number>(0)
+  const [formStartSlot, setFormStartSlot] = useState<number>(1)
 
   useEffect(() => {
     async function loadClasses() {
@@ -69,6 +71,17 @@ export function TimetableView() {
     )
   }
 
+  const handleCellClick = (day: number, slotIndex: number) => {
+    setFormDay(day)
+    setFormStartSlot(slotIndex)
+    setShowForm(true)
+  }
+
+  function openAddEmpty() {
+    setFormDay(0)
+    setFormStartSlot(1)
+    setShowForm(true)
+  }
   return (
     <div style={{ padding: 20, fontFamily: 'Arial', direction: 'rtl' }}>
       <h1>جدول التوقيت</h1>
@@ -88,7 +101,7 @@ export function TimetableView() {
         </label>
 
         <button
-          onClick={() => setShowForm(true)}
+          onClick={openAddEmpty}
           disabled={!selectedClass}
           style={{
             padding: '8px 16px',
@@ -145,16 +158,25 @@ export function TimetableView() {
                     </td>
                   )
                 }
-                return <td key={dayIdx} style={cellStyle}></td>
+                   return (
+                  <td
+                    key={dayIdx}
+                    style={{ ...cellStyle, cursor: 'pointer' }}
+                    onClick={() => handleCellClick(dayIdx, slot.index)}
+                    title="اضغط لإضافة حصة"
+                  ></td>
+                )
               })}
             </tr>
           ))}
         </tbody>
       </table>
 
-      {showForm && selectedClass && (
+            {showForm && selectedClass && (
         <AddEntryForm
           classId={selectedClass}
+          initialDay={formDay}
+          initialStartSlot={formStartSlot}
           onSaved={() => {
             setShowForm(false)
             loadEntries()
