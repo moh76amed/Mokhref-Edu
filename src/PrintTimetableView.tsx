@@ -81,7 +81,32 @@ export function PrintTimetableView() {
     )
   }
 
+  // نُبقي فقط الخانات التي فيها حصة في أي يوم
+  const visibleSlots = TIME_SLOTS.filter(slot =>
+    entries.some(e =>
+      e.start_slot <= slot.index &&
+      slot.index < e.start_slot + e.duration_slots
+    )
+  )
   const selectedClassObj = classes.find(c => c.id === selectedClass)
+  
+  // نُقرر: هل الوقت أفقي أم عمودي؟
+  // القاعدة: إذا كانت الأعمدة أقل من 10، اكتب أفقيًا
+  const useHorizontalTime = visibleSlots.length < 10
+  
+  // حجم الخط يتكيّف حسب عدد الأعمدة
+  // القاعدة: عدد الأعمدة الأقل → خط أكبر
+  const dynamicFontSize =
+    visibleSlots.length <= 6 ? 14 :
+    visibleSlots.length <= 8 ? 13 :
+    visibleSlots.length <= 10 ? 12 :
+    visibleSlots.length <= 14 ? 11 :
+    visibleSlots.length <= 18 ? 10 :
+    visibleSlots.length <= 24 ? 9 : 8
+
+  // ارتفاع الخلية يتكيّف مع حجم الخط
+  const dynamicRowHeight = dynamicFontSize + 18
+  const dynamicHeaderHeight = dynamicFontSize + 50
 
   if (loading) return <p style={{ padding: 20 }}>جاري التحميل...</p>
 
@@ -155,9 +180,38 @@ export function PrintTimetableView() {
           <thead>
             <tr>
               <th style={cornerCellStyle}></th>
-              {TIME_SLOTS.map((slot) => (
-                <th key={slot.index} style={timeHeaderStyle}>
-                  <span style={verticalTextStyle}>{slot.label}</span>
+                              {visibleSlots.map((slot) => (
+                                <th
+                  key={slot.index}
+                  style={{
+                    border: '1px solid #000',
+                    background: '#f0f0f0',
+                    height: dynamicHeaderHeight,
+                    padding: 0,
+                    position: 'relative',
+                    overflow: 'hidden',
+                    fontSize: dynamicFontSize,
+                    fontWeight: 'bold',
+                    verticalAlign: 'middle',
+                    textAlign: 'center',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  {useHorizontalTime ? (
+                    slot.label
+                  ) : (
+                    <span style={{
+                      position: 'absolute',
+                      top: '50%',
+                      left: '50%',
+                      transform: 'translate(-50%, -50%) rotate(-90deg)',
+                      transformOrigin: 'center',
+                      whiteSpace: 'nowrap',
+                      fontSize: dynamicFontSize,
+                      fontWeight: 'bold',
+                      display: 'inline-block'
+                    }}>{slot.label}</span>
+                  )}
                 </th>
               ))}
             </tr>
@@ -165,22 +219,36 @@ export function PrintTimetableView() {
           <tbody>
             {DAYS.map((dayName, dayIdx) => (
               <tr key={dayIdx}>
-                <td style={dayCellStyle}>{dayName}</td>
-                {TIME_SLOTS.map((slot) => {
+                                <td style={{ ...dayCellStyle, fontSize: dynamicFontSize + 1 }}>{dayName}</td>
+                {visibleSlots.map((slot) => {
                   if (isCoveredByPrevious(dayIdx, slot.index)) return null
                   const entry = getEntryAt(dayIdx, slot.index)
                   if (entry) {
                     return (
-                      <td
+                         <td
                         key={slot.index}
                         colSpan={entry.duration_slots}
-                        style={entryCellStyle}
+                        style={{
+                          border: '1px solid #000',
+                          padding: '2px 3px',
+                          fontSize: dynamicFontSize,
+                          textAlign: 'center',
+                          background: '#f9f9f9',
+                          verticalAlign: 'middle',
+                          fontWeight: 'bold',
+                          height: dynamicRowHeight
+                        }}
                       >
                         {entry.is_break ? 'غداء' : entry.subjects?.name || ''}
-                      </td>
+                      </td> 
                     )
                   }
-                  return <td key={slot.index} style={emptyCellStyle}></td>
+                                    return (
+                    <td
+                      key={slot.index}
+                      style={{ border: '1px solid #000', height: dynamicRowHeight }}
+                    ></td>
+                  )
                 })}
               </tr>
             ))}
@@ -220,25 +288,6 @@ const cornerCellStyle: React.CSSProperties = {
   background: '#f0f0f0'
 }
 
-const timeHeaderStyle: React.CSSProperties = {
-  border: '1px solid #000',
-  background: '#f0f0f0',
-  height: 45,
-  padding: 0,
-  verticalAlign: 'bottom',
-  position: 'relative'
-}
-
-const verticalTextStyle: React.CSSProperties = {
-  display: 'inline-block',
-  transform: 'rotate(-90deg)',
-  transformOrigin: 'center',
-  whiteSpace: 'nowrap',
-  fontSize: 9,
-  fontWeight: 'bold',
-  paddingBottom: 2
-}
-
 const dayCellStyle: React.CSSProperties = {
   border: '1px solid #000',
   padding: '2px 4px',
@@ -247,20 +296,4 @@ const dayCellStyle: React.CSSProperties = {
   textAlign: 'center',
   background: '#f0f0f0',
   width: 55
-}
-
-const entryCellStyle: React.CSSProperties = {
-  border: '1px solid #000',
-  padding: '2px 3px',
-  fontSize: 10,
-  textAlign: 'center',
-  background: '#f9f9f9',
-  verticalAlign: 'middle',
-  fontWeight: 'bold',
-  height: 30
-}
-
-const emptyCellStyle: React.CSSProperties = {
-  border: '1px solid #000',
-  height: 30
 }
