@@ -7,11 +7,12 @@ import { TeacherTimetableView } from './TeacherTimetableView'
 import { SubjectsManager } from './SubjectsManager'
 import { ClassesManager } from './ClassesManager'
 import { LevelsManager } from './LevelsManager'
-import { TeachersManager } from './TeachersManager'
+import { TeachersSubjects } from './TeachersSubjects'
 import { SettingsPage } from './SettingsPage'
 import { PrintTimetableView } from './PrintTimetableView'
+import { TeacherPrint } from './TeacherPrint'
 
-type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers' | 'settings' | 'print'
+type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers' | 'settings' | 'print' | 'printTeacher'
 
 function App() {
   const [page, setPage] = useState<Page>('timetable')
@@ -88,11 +89,11 @@ function App() {
           >
             السنوات
           </button>
-          <button
+                    <button
             onClick={() => setPage('teachers')}
             style={page === 'teachers' ? activeTab : inactiveTab}
           >
-            الأساتذة
+            الأساتذة والمواد
           </button>
           <button
             onClick={() => setPage('settings')}
@@ -105,6 +106,12 @@ function App() {
             style={page === 'print' ? activeTab : inactiveTab}
           >
             🖨️ طباعة
+          </button>
+                    <button
+            onClick={() => setPage('printTeacher')}
+            style={page === 'printTeacher' ? activeTab : inactiveTab}
+          >
+            🖨️ طباعة الأستاذ
           </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -123,9 +130,10 @@ function App() {
         {page === 'subjects' && <SubjectsManager />}
         {page === 'classes' && <ClassesManager />}
         {page === 'levels' && <LevelsManager />}
-        {page === 'teachers' && <TeachersManager />}
+        {page === 'teachers' && <TeachersSubjects />}
         {page === 'settings' && <SettingsPage />}
         {page === 'print' && <PrintTimetableView />}
+        {page === 'printTeacher' && <TeacherPrint />}
       </div>
     </div>
   )
