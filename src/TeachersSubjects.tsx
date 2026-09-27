@@ -361,7 +361,6 @@ function GuideDialog({
   onClose: () => void
   onAdded: () => void
 }) {
-  const [uid, setUid] = useState('')
   const [firstName, setFirstName] = useState('')
   const [lastName, setLastName] = useState('')
   const [email, setEmail] = useState('')
@@ -379,24 +378,27 @@ function GuideDialog({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setError('')
-    if (!uid.trim() || !firstName.trim() || !lastName.trim()) {
-      setError('UID والاسم واللقب مطلوبة')
+    if (!firstName.trim() || !lastName.trim()) {
+      setError('الاسم واللقب مطلوبان')
       return
     }
     setSaving(true)
 
-    const { error: insErr } = await supabase.from('teachers').insert({
-      id: uid.trim(),
-      first_name: firstName.trim(),
-      last_name: lastName.trim(),
-      email: email.trim() || null,
-      phone: phone.trim() || null,
-      is_teacher: true
-    })
+    const { data: newTeacher, error: insErr } = await supabase
+      .from('teachers')
+      .insert({
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        email: email.trim() || null,
+        phone: phone.trim() || null,
+        is_teacher: true
+      })
+      .select()
+      .single()
 
-    if (insErr) {
+    if (insErr || !newTeacher) {
       setSaving(false)
-      setError(insErr.message)
+      setError(insErr?.message || 'فشل الإنشاء')
       return
     }
 
@@ -404,7 +406,7 @@ function GuideDialog({
       const { error: linkErr } = await supabase
         .from('teacher_subjects')
         .insert(selectedSubjects.map(sid => ({
-          teacher_id: uid.trim(),
+          teacher_id: newTeacher.id,
           subject_id: sid
         })))
       if (linkErr) {
@@ -423,26 +425,10 @@ function GuideDialog({
       <div style={{ ...modalStyle, width: 600, maxHeight: '90vh', overflowY: 'auto' }}>
         <h2 style={{ marginTop: 0 }}>إضافة أستاذ جديد</h2>
 
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', padding: 12, borderRadius: 6, marginBottom: 15, fontSize: 14, lineHeight: 1.8 }}>
-          <strong>خطوات إضافة أستاذ:</strong>
-          <ol style={{ margin: '8px 0 0', paddingRight: 20 }}>
-            <li>افتح <strong>Supabase</strong> → <strong>Authentication</strong> → <strong>Users</strong>.</li>
-            <li>اضغط <strong>"Add user"</strong> → <strong>"Create new user"</strong>.</li>
-            <li>أدخل بريد الأستاذ وكلمة سر مؤقتة، وفعّل <strong>Auto Confirm User</strong>.</li>
-            <li>انسخ <strong>UID</strong> الذي يظهر للأستاذ.</li>
-            <li>الصقه في الحقل أدناه، واملأ باقي البيانات.</li>
-          </ol>
-        </div>
-
         <form onSubmit={handleSubmit}>
           <label style={labelStyle}>
-            UID (من Supabase) *
-            <input type="text" value={uid} onChange={(e) => setUid(e.target.value)} style={inputStyle} placeholder="مثال: 94822738-8cff-49e1-..." />
-          </label>
-
-          <label style={labelStyle}>
             الاسم *
-            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={inputStyle} />
+            <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} style={inputStyle} autoFocus />
           </label>
 
           <label style={labelStyle}>
