@@ -24,6 +24,7 @@ type Props = {
 export function AddEntryForm({ classId, onSaved, onCancel, initialDay = 0, initialStartSlot = 1 }: Props) {
   const [subjects, setSubjects] = useState<any[]>([])
   const [teachers, setTeachers] = useState<any[]>([])
+  const [teacherSubjects, setTeacherSubjects] = useState<{ teacher_id: string; subject_id: number }[]>([])
   const [subjectId, setSubjectId] = useState<number | null>(null)
   const [teacherId, setTeacherId] = useState<string>('')
   const [day, setDay] = useState<number>(initialDay)
@@ -33,17 +34,36 @@ export function AddEntryForm({ classId, onSaved, onCancel, initialDay = 0, initi
   const [error, setError] = useState<string>('')
   const [saving, setSaving] = useState<boolean>(false)
 
-  useEffect(() => {
+    useEffect(() => {
     async function load() {
       const { data: s } = await supabase.from('subjects').select('*').order('id')
-      const { data: t } = await supabase.from('teachers').select('*').order('last_name')
+      const { data: t } = await supabase
+        .from('teachers')
+        .select('*')
+        .eq('is_teacher', true)
+        .order('last_name')
+      const { data: ts } = await supabase
+        .from('teacher_subjects')
+        .select('teacher_id, subject_id')
       setSubjects(s || [])
       setTeachers(t || [])
-      if (s && s.length > 0) setSubjectId(s[0].id)
-      if (t && t.length > 0) setTeacherId(t[0].id)
+      setTeacherSubjects(ts || [])
+      if (t && t.length > 0) {
+        setTeacherId(t[0].id)
+        const firstTeacherSubjects = (ts || [])
+          .filter(x => x.teacher_id === t[0].id)
+          .map(x => x.subject_id)
+        if (firstTeacherSubjects.length > 0) setSubjectId(firstTeacherSubjects[0])
+      }
     }
-    load()
+        load()
   }, [])
+
+    const availableSubjects = teacherId
+    ? subjects.filter(s =>
+        teacherSubjects.some(ts => ts.teacher_id === teacherId && ts.subject_id === s.id)
+      )
+    : []
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -75,17 +95,31 @@ export function AddEntryForm({ classId, onSaved, onCancel, initialDay = 0, initi
       <form onSubmit={handleSubmit} style={modalStyle}>
         <h2 style={{ marginTop: 0 }}>إضافة حصة</h2>
 
-        <label style={labelStyle}>
+                <label style={labelStyle}>
           المادة
           <select value={subjectId || ''} onChange={(e) => setSubjectId(Number(e.target.value))} style={inputStyle}>
-            {subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+            {availableSubjects.length > 0 ? (
+              availableSubjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)
+            ) : (
+              <option value="">— لا توجد مواد مرتبطة بالأستاذ —</option>
+            )}
           </select>
         </label>
 
-        <label style={labelStyle}>
+                <label style={labelStyle}>
           الأستاذ
-          <select value={teacherId} onChange={(e) => setTeacherId(e.target.value)} style={inputStyle}>
-            {teachers.map((t) => (
+          <select
+            value={teacherId}
+                        onChange={(e) => {
+              const newTeacherId = e.target.value
+              setTeacherId(newTeacherId)
+              const subjectsForNewTeacher = teacherSubjects
+                .filter(ts => ts.teacher_id === newTeacherId)
+                .map(ts => ts.subject_id)
+              setSubjectId(subjectsForNewTeacher.length > 0 ? subjectsForNewTeacher[0] : null)
+            }}
+            style={inputStyle}
+          >  {teachers.map((t) => (
               <option key={t.id} value={t.id}>{t.first_name} {t.last_name}</option>
             ))}
           </select>

@@ -10,8 +10,7 @@ type Entry = {
   duration_slots: number
   room: string | null
   is_break: boolean | null
-  classes: { name: string } | null
-  subjects: { name: string } | null
+  classes: { name: string; levels: { name: string } | null } | null
 }
 
 type Teacher = {
@@ -62,7 +61,7 @@ export function TeacherPrint() {
     async function loadEntries() {
       const { data } = await supabase
         .from('timetable_entries')
-        .select('id, day_of_week, start_slot, duration_slots, room, is_break, classes(name), subjects(name)')
+        .select('id, day_of_week, start_slot, duration_slots, room, is_break, classes(name, levels(name))')
         .eq('teacher_id', selectedTeacher)
       setEntries((data as any) || [])
     }
@@ -224,9 +223,13 @@ export function TeacherPrint() {
                           fontWeight: 'bold',
                           height: dynamicRowHeight
                         }}
-                      >
-                        {entry.is_break ? 'غداء' : entry.classes?.name || ''}
-                        {entry.subjects?.name ? ` — ${entry.subjects.name}` : ''}
+                          >
+                        {entry.is_break
+                          ? 'غداء'
+                          : entry.classes
+                            ? `${entry.classes.levels?.name || ''} ${entry.classes.name?.split(' ').pop() || ''}`.trim()
+                            : ''
+                        }
                       </td>
                     )
                   }
