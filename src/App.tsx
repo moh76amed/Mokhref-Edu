@@ -11,6 +11,7 @@ import { TeachersSubjects } from './TeachersSubjects'
 import { SettingsPage } from './SettingsPage'
 import { PrintTimetableView } from './PrintTimetableView'
 import { TeacherPrint } from './TeacherPrint'
+import { ChangePassword } from './ChangePassword'
 
 type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers' | 'settings' | 'print' | 'printTeacher'
 
@@ -18,6 +19,7 @@ function App() {
   const [page, setPage] = useState<Page>('timetable')
   const [session, setSession] = useState<any>(null)
   const [checking, setChecking] = useState(true)
+  const [showChangePassword, setShowChangePassword] = useState(false)
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -118,6 +120,12 @@ function App() {
           <div style={{ fontSize: 11, opacity: 0.8 }}>
             {session.user.email}
           </div>
+                    <button
+            onClick={() => setShowChangePassword(true)}
+            style={changePassBtn}
+          >
+            🔑 كلمة السر
+          </button>
           <button onClick={handleLogout} style={logoutBtn}>
             خروج
           </button>
@@ -134,6 +142,7 @@ function App() {
         {page === 'settings' && <SettingsPage />}
         {page === 'print' && <PrintTimetableView />}
         {page === 'printTeacher' && <TeacherPrint />}
+        {showChangePassword && <ChangePassword onClose={() => setShowChangePassword(false)} />}
       </div>
     </div>
   )
@@ -170,6 +179,16 @@ const inactiveTab: React.CSSProperties = {
   borderRadius: 4,
   cursor: 'pointer',
   fontSize: 12
+}
+const changePassBtn: React.CSSProperties = {
+  background: '#28a745',
+  color: 'white',
+  border: 'none',
+  padding: '6px 12px',
+  borderRadius: 4,
+  cursor: 'pointer',
+  fontSize: 12,
+  fontWeight: 'bold'
 }
 
 const logoutBtn: React.CSSProperties = {
