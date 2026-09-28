@@ -20,14 +20,15 @@ type ClassRow = {
   levels: { name: string } | null
 }
 
-// 36 خانة زمنية، كل واحدة 15 دقيقة، من 08:00 إلى 17:00
-const TIME_SLOTS = Array.from({ length: 36 }, (_, i) => {
-  const m = 8 * 60 + i * 15
+// ✅ 38 خانة: من 08:00 إلى 17:30 (تضمن ظهور 16:45-17:00)
+const TIME_SLOTS = Array.from({ length: 38 }, (_, i) => {
+  const startMin = 8 * 60 + i * 15
+  const endMin   = startMin + 15
   const fmt = (x: number) =>
     `${Math.floor(x / 60).toString().padStart(2, '0')}:${(x % 60).toString().padStart(2, '0')}`
   return {
     index: i + 1,
-    label: fmt(m),
+    label: `${fmt(startMin)}-${fmt(endMin)}`,
   }
 })
 
@@ -69,44 +70,45 @@ export function PrintTimetableView() {
     loadEntries()
   }, [selectedClass])
 
-  const getEntryAt = (day: number, slotIndex: number) => {
-    return entries.find(e => e.day_of_week === day && e.start_slot === slotIndex)
-  }
+  const getEntryAt = (day: number, slotIndex: number) =>
+    entries.find(e => e.day_of_week === day && e.start_slot === slotIndex)
 
-  const isCoveredByPrevious = (day: number, slotIndex: number) => {
-    return entries.some(e =>
+  const isCoveredByPrevious = (day: number, slotIndex: number) =>
+    entries.some(e =>
       e.day_of_week === day &&
       e.start_slot < slotIndex &&
       e.start_slot + e.duration_slots > slotIndex
     )
-  }
 
-  // نُبقي فقط الخانات التي فيها حصة في أي يوم
-  const visibleSlots = TIME_SLOTS.filter(slot =>
-    entries.some(e =>
-      e.start_slot <= slot.index &&
-      slot.index < e.start_slot + e.duration_slots
-    )
+  // ✅ أول خانة فيها حصة
+  const firstUsedSlot = entries.length > 0
+    ? Math.min(...entries.map(e => e.start_slot))
+    : 1
+
+  // ✅ آخر خانة تنتهي فيها حصة
+  const lastUsedSlot = entries.length > 0
+    ? Math.max(...entries.map(e => e.start_slot + e.duration_slots - 1))
+    : 0
+
+  // ✅ فقط الخانات المستخدمة — بدون فراغات في البداية أو النهاية
+  const visibleSlots = TIME_SLOTS.filter(
+    slot => slot.index >= firstUsedSlot && slot.index <= lastUsedSlot
   )
-  const selectedClassObj = classes.find(c => c.id === selectedClass)
-  
-  // نُقرر: هل الوقت أفقي أم عمودي؟
-  // القاعدة: إذا كانت الأعمدة أقل من 10، اكتب أفقيًا
-  const useHorizontalTime = visibleSlots.length < 10
-  
-  // حجم الخط يتكيّف حسب عدد الأعمدة
-  // القاعدة: عدد الأعمدة الأقل → خط أكبر
-  const dynamicFontSize =
-    visibleSlots.length <= 6 ? 14 :
-    visibleSlots.length <= 8 ? 13 :
-    visibleSlots.length <= 10 ? 12 :
-    visibleSlots.length <= 14 ? 11 :
-    visibleSlots.length <= 18 ? 10 :
-    visibleSlots.length <= 24 ? 9 : 8
 
-  // ارتفاع الخلية يتكيّف مع حجم الخط
-  const dynamicRowHeight = dynamicFontSize + 18
-  const dynamicHeaderHeight = dynamicFontSize + 50
+  const selectedClassObj = classes.find(c => c.id === selectedClass)
+  const useHorizontalTime = visibleSlots.length < 8
+
+  const dynamicFontSize =
+    visibleSlots.length <= 6  ? 13 :
+    visibleSlots.length <= 8  ? 12 :
+    visibleSlots.length <= 10 ? 11 :
+    visibleSlots.length <= 14 ? 10 :
+    visibleSlots.length <= 18 ? 9  :
+    visibleSlots.length <= 24 ? 8  : 7
+
+  // ✅ ارتفاع رأس الجدول أكبر لاستيعاب الوقت بصيغة XX:XX-XX:XX
+  const dynamicRowHeight    = dynamicFontSize + 20
+  const dynamicHeaderHeight = dynamicFontSize + 70
 
   if (loading) return <p style={{ padding: 20 }}>جاري التحميل...</p>
 
@@ -128,18 +130,12 @@ export function PrintTimetableView() {
             ))}
           </select>
         </label>
-
         <button
           onClick={() => window.print()}
           style={{
-            padding: '10px 20px',
-            background: '#007bff',
-            color: 'white',
-            border: 'none',
-            borderRadius: 6,
-            fontSize: 16,
-            fontWeight: 'bold',
-            cursor: 'pointer'
+            padding: '10px 20px', background: '#007bff', color: 'white',
+            border: 'none', borderRadius: 6, fontSize: 16,
+            fontWeight: 'bold', cursor: 'pointer'
           }}
         >
           🖨️ طباعة
@@ -148,20 +144,15 @@ export function PrintTimetableView() {
 
       {/* منطقة الطباعة */}
       <div className="print-area" style={pageStyle}>
-        {/* الرأس: 3 أعمدة */}
+        {/* الرأس */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 15 }}>
-          {/* اليمين: الوزارة والمديرية */}
           <div style={{ textAlign: 'right', fontSize: 11, lineHeight: 1.6, flex: 1 }}>
             <div style={{ fontWeight: 'bold' }}>وزارة التربية الوطنية</div>
             <div>{settings?.direction || 'مديرية التربية لولاية ...'}</div>
           </div>
-
-          {/* الوسط: الجمهورية */}
           <div style={{ textAlign: 'center', fontSize: 12, fontWeight: 'bold', flex: 1, paddingTop: 4 }}>
             الجمهورية الجزائرية الديمقراطية الشعبية
           </div>
-
-          {/* اليسار: المدرسة والسنة */}
           <div style={{ textAlign: 'left', fontSize: 11, lineHeight: 1.6, flex: 1 }}>
             <div style={{ fontWeight: 'bold' }}>{settings?.school_name || 'اسم المدرسة'}</div>
             <div>السنة الدراسية: {settings?.academic_year || '...'}</div>
@@ -170,7 +161,7 @@ export function PrintTimetableView() {
 
         {/* العنوان */}
         <div style={{ textAlign: 'center', marginBottom: 12 }}>
-                <div style={{ fontSize: 15, fontWeight: 'bold', textDecoration: 'underline' }}>
+          <div style={{ fontSize: 15, fontWeight: 'bold', textDecoration: 'underline' }}>
             التوقيت الأسبوعي لـ: {selectedClassObj?.levels?.name || ''} {selectedClassObj?.name?.split(' ').pop() || '...'}
           </div>
         </div>
@@ -180,8 +171,8 @@ export function PrintTimetableView() {
           <thead>
             <tr>
               <th style={cornerCellStyle}></th>
-                              {visibleSlots.map((slot) => (
-                                <th
+              {visibleSlots.map((slot) => (
+                <th
                   key={slot.index}
                   style={{
                     border: '1px solid #000',
@@ -194,7 +185,7 @@ export function PrintTimetableView() {
                     fontWeight: 'bold',
                     verticalAlign: 'middle',
                     textAlign: 'center',
-                    whiteSpace: 'nowrap'
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   {useHorizontalTime ? (
@@ -209,8 +200,10 @@ export function PrintTimetableView() {
                       whiteSpace: 'nowrap',
                       fontSize: dynamicFontSize,
                       fontWeight: 'bold',
-                      display: 'inline-block'
-                    }}>{slot.label}</span>
+                      display: 'inline-block',
+                    }}>
+                      {slot.label}
+                    </span>
                   )}
                 </th>
               ))}
@@ -219,35 +212,39 @@ export function PrintTimetableView() {
           <tbody>
             {DAYS.map((dayName, dayIdx) => (
               <tr key={dayIdx}>
-                                <td style={{ ...dayCellStyle, fontSize: dynamicFontSize + 1 }}>{dayName}</td>
+                {/* ✅ خط أكبر لأسماء الأيام */}
+                <td style={{ ...dayCellStyle, fontSize: dynamicFontSize + 3 }}>{dayName}</td>
                 {visibleSlots.map((slot) => {
                   if (isCoveredByPrevious(dayIdx, slot.index)) return null
                   const entry = getEntryAt(dayIdx, slot.index)
                   if (entry) {
+                    const remainingCols = visibleSlots.filter(s => s.index >= slot.index).length
+                    const colSpan = Math.min(entry.duration_slots, remainingCols)
                     return (
-                         <td
+                      <td
                         key={slot.index}
-                        colSpan={entry.duration_slots}
+                        colSpan={colSpan}
                         style={{
                           border: '1px solid #000',
                           padding: '2px 3px',
-                          fontSize: dynamicFontSize,
+                          // ✅ خط أكبر لأسماء المواد
+                          fontSize: dynamicFontSize + 2,
                           textAlign: 'center',
                           background: '#f9f9f9',
                           verticalAlign: 'middle',
                           fontWeight: 'bold',
-                          height: dynamicRowHeight
+                          height: dynamicRowHeight,
                         }}
                       >
                         {entry.is_break ? 'غداء' : entry.subjects?.name || ''}
-                      </td> 
+                      </td>
                     )
                   }
-                                    return (
+                  return (
                     <td
                       key={slot.index}
                       style={{ border: '1px solid #000', height: dynamicRowHeight }}
-                    ></td>
+                    />
                   )
                 })}
               </tr>
@@ -265,29 +262,25 @@ export function PrintTimetableView() {
   )
 }
 
-// ==================== الأنماط ====================
 const pageStyle: React.CSSProperties = {
   background: 'white',
   padding: '15mm 10mm',
   maxWidth: 1100,
   margin: '0 auto',
   border: '1px solid #ddd',
-  boxSizing: 'border-box'
+  boxSizing: 'border-box',
 }
-
 const tableStyle: React.CSSProperties = {
   borderCollapse: 'collapse',
   width: '100%',
   tableLayout: 'fixed',
-  fontSize: 10
+  fontSize: 10,
 }
-
 const cornerCellStyle: React.CSSProperties = {
   border: '1px solid #000',
   width: 55,
-  background: '#f0f0f0'
+  background: '#f0f0f0',
 }
-
 const dayCellStyle: React.CSSProperties = {
   border: '1px solid #000',
   padding: '2px 4px',
@@ -295,5 +288,5 @@ const dayCellStyle: React.CSSProperties = {
   fontWeight: 'bold',
   textAlign: 'center',
   background: '#f0f0f0',
-  width: 55
+  width: 55,
 }
