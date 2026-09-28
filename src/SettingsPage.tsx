@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient'
 type Settings = {
   id: number
   school_name: string | null
+  school_type: string | null
   wilaya: string | null
   commune: string | null
   direction: string | null
@@ -43,8 +44,9 @@ export function SettingsPage() {
     setSaving(true)
     const { error } = await supabase
       .from('settings')
-      .update({
+            .update({
         school_name: settings.school_name,
+        school_type: settings.school_type,
         wilaya: settings.wilaya,
         commune: settings.commune,
         direction: settings.direction,
@@ -78,6 +80,19 @@ export function SettingsPage() {
             onChange={(e) => updateField('school_name', e.target.value)}
             style={inputStyle}
           />
+        </label>
+           
+           <label style={labelStyle}>
+          المرحلة التعليمية
+          <select
+            value={settings.school_type || 'primary'}
+            onChange={(e) => updateField('school_type', e.target.value)}
+            style={inputStyle}
+          >
+            <option value="primary">ابتدائي</option>
+            <option value="middle">متوسط</option>
+            <option value="secondary">ثانوي</option>
+          </select>
         </label>
 
         <label style={labelStyle}>
