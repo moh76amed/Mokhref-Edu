@@ -31,9 +31,9 @@ export function LoginPage() {
       <form onSubmit={handleSubmit} style={cardStyle}>
         <div style={{ textAlign: 'center', marginBottom: 20 }}>
           <div style={{ fontSize: 48, marginBottom: 8 }}>🏫</div>
-          <h1 style={{ margin: 0, fontSize: 24, color: '#1e293b' }}>Mokhref Edu</h1>
+          <h1 style={{ margin: 0, fontSize: 24, color: '#1e293b' }}>School Manager DZ</h1>
           <p style={{ margin: '4px 0 0', color: '#64748b', fontSize: 14 }}>
-            ابتدائية مخرف عمر
+            نظام تسيير المؤسسات التربوية
           </p>
         </div>
 

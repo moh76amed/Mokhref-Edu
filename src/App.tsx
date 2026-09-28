@@ -57,7 +57,7 @@ function App() {
       <nav style={navStyle}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 15 }}>
           <div style={{ fontWeight: 'bold', fontSize: 18 }}>
-            Mokhref Edu
+            School Manager DZ
           </div>
         </div>
         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
