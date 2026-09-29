@@ -11,6 +11,12 @@ type Settings = {
   academic_year: string | null
   inspectorate: string | null
   director_name: string | null
+  stone_rooms: number | null
+  wooden_rooms: number | null
+  other_rooms: number | null
+  teaching_positions: number | null
+  other_positions: number | null
+  vacant_positions: number | null
 }
 
 export function SettingsPage() {
@@ -44,7 +50,7 @@ export function SettingsPage() {
     setSaving(true)
     const { error } = await supabase
       .from('settings')
-            .update({
+                  .update({
         school_name: settings.school_name,
         school_type: settings.school_type,
         wilaya: settings.wilaya,
@@ -52,7 +58,13 @@ export function SettingsPage() {
         direction: settings.direction,
         academic_year: settings.academic_year,
         inspectorate: settings.inspectorate,
-        director_name: settings.director_name
+        director_name: settings.director_name,
+        stone_rooms: settings.stone_rooms,
+        wooden_rooms: settings.wooden_rooms,
+        other_rooms: settings.other_rooms,
+        teaching_positions: settings.teaching_positions,
+        other_positions: settings.other_positions,
+        vacant_positions: settings.vacant_positions
       })
       .eq('id', 1)
     setSaving(false)
@@ -79,6 +91,77 @@ export function SettingsPage() {
             value={settings.school_name || ''}
             onChange={(e) => updateField('school_name', e.target.value)}
             style={inputStyle}
+          />
+        </label>
+                <hr style={{ margin: '20px 0', border: '1px solid #eee' }} />
+        <h3 style={{ marginBottom: 15 }}>الحجرات</h3>
+
+        <label style={labelStyle}>
+          حجرات حجرية
+          <input
+            type="number"
+            value={settings.stone_rooms || 0}
+            onChange={(e) => updateField('stone_rooms', e.target.value as any)}
+            style={inputStyle}
+            min={0}
+          />
+        </label>
+
+        <label style={labelStyle}>
+          حجرات خشبية
+          <input
+            type="number"
+            value={settings.wooden_rooms || 0}
+            onChange={(e) => updateField('wooden_rooms', e.target.value as any)}
+            style={inputStyle}
+            min={0}
+          />
+        </label>
+
+        <label style={labelStyle}>
+          حجرات أخرى
+          <input
+            type="number"
+            value={settings.other_rooms || 0}
+            onChange={(e) => updateField('other_rooms', e.target.value as any)}
+            style={inputStyle}
+            min={0}
+          />
+        </label>
+
+        <hr style={{ margin: '20px 0', border: '1px solid #eee' }} />
+        <h3 style={{ marginBottom: 15 }}>المناصب</h3>
+
+        <label style={labelStyle}>
+          مناصب التدريس
+          <input
+            type="number"
+            value={settings.teaching_positions || 0}
+            onChange={(e) => updateField('teaching_positions', e.target.value as any)}
+            style={inputStyle}
+            min={0}
+          />
+        </label>
+
+        <label style={labelStyle}>
+          مناصب أخرى
+          <input
+            type="number"
+            value={settings.other_positions || 0}
+            onChange={(e) => updateField('other_positions', e.target.value as any)}
+            style={inputStyle}
+            min={0}
+          />
+        </label>
+
+        <label style={labelStyle}>
+          مناصب شاغرة
+          <input
+            type="number"
+            value={settings.vacant_positions || 0}
+            onChange={(e) => updateField('vacant_positions', e.target.value as any)}
+            style={inputStyle}
+            min={0}
           />
         </label>
            
