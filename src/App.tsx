@@ -12,8 +12,9 @@ import { SettingsPage } from './SettingsPage'
 import { PrintTimetableView } from './PrintTimetableView'
 import { TeacherPrint } from './TeacherPrint'
 import { ChangePassword } from './ChangePassword'
+import { GeneralTable } from './GeneralTable'
 
-type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers' | 'settings' | 'print' | 'printTeacher'
+type Page = 'timetable' | 'teacherTimetable' | 'subjects' | 'classes' | 'levels' | 'teachers' | 'settings' | 'print' | 'printTeacher' | 'general'
 
 function App() {
   const [page, setPage] = useState<Page>('timetable')
@@ -115,6 +116,12 @@ function App() {
           >
             🖨️ طباعة الأستاذ
           </button>
+                    <button
+            onClick={() => setPage('general')}
+            style={page === 'general' ? activeTab : inactiveTab}
+          >
+            الجدول العام
+          </button>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
           <div style={{ fontSize: 11, opacity: 0.8 }}>
@@ -142,6 +149,7 @@ function App() {
         {page === 'settings' && <SettingsPage />}
         {page === 'print' && <PrintTimetableView />}
         {page === 'printTeacher' && <TeacherPrint />}
+        {page === 'general' && <GeneralTable />}
         {showChangePassword && <ChangePassword onClose={() => setShowChangePassword(false)} />}
       </div>
     </div>

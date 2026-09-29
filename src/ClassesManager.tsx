@@ -13,6 +13,8 @@ type ClassRow = {
   name: string
   level_id: number
   student_count: number | null
+  male_count: number | null
+  female_count: number | null
   levels: { name: string } | null
 }
 
@@ -33,9 +35,9 @@ export function ClassesManager() {
 
   async function loadData() {
     setLoading(true)
-    const { data: classesData, error: err1 } = await supabase
+      const { data: classesData, error: err1 } = await supabase
       .from('classes')
-      .select('id, name, level_id, student_count, levels(name)')
+      .select('id, name, level_id, student_count, male_count, female_count, levels(name)')
       .order('id')
     const { data: levelsData, error: err2 } = await supabase
       .from('levels')
@@ -132,19 +134,23 @@ export function ClassesManager() {
 
       <table style={{ borderCollapse: 'collapse', width: '100%', marginTop: 20 }}>
         <thead>
-          <tr>
+                    <tr>
             <th style={thStyle}>القسم</th>
             <th style={thStyle}>السنة</th>
-            <th style={thStyle}>عدد التلاميذ</th>
+            <th style={thStyle}>ذكور</th>
+            <th style={thStyle}>إناث</th>
+            <th style={thStyle}>المجموع</th>
             <th style={thStyle}>إجراءات</th>
           </tr>
         </thead>
         <tbody>
           {classes.map((c) => (
-            <tr key={c.id}>
+              <tr key={c.id}>
               <td style={tdStyle}>{c.name}</td>
               <td style={tdStyle}>{c.levels?.name || '—'}</td>
-              <td style={tdStyle}>{c.student_count ?? '—'}</td>
+              <td style={tdStyle}>{c.male_count ?? 0}</td>
+              <td style={tdStyle}>{c.female_count ?? 0}</td>
+              <td style={tdStyle}>{c.student_count ?? 0}</td>
               <td style={tdStyle}>
                 <button onClick={() => openEdit(c)} style={smallBtn}>تعديل</button>
                 <button
@@ -196,7 +202,9 @@ function ClassForm({
 }) {
   const [name, setName] = useState(classRow?.name || '')
   const [levelId, setLevelId] = useState<number | null>(classRow?.level_id || (levels[0]?.id ?? null))
-  const [studentCount, setStudentCount] = useState<number>(classRow?.student_count || 0)
+  
+  const [maleCount, setMaleCount] = useState<number>(classRow?.male_count || 0)
+  const [femaleCount, setFemaleCount] = useState<number>(classRow?.female_count || 0)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -213,11 +221,13 @@ function ClassForm({
     }
     setSaving(true)
 
-    const payload = {
+      const payload = {
       name: name.trim(),
       level_id: levelId,
-      student_count: studentCount
-    }
+      student_count: maleCount + femaleCount,
+      male_count: maleCount,
+      female_count: femaleCount
+    }  
 
     let result
     if (classRow) {
@@ -252,6 +262,38 @@ function ClassForm({
           />
         </label>
 
+            <label style={labelStyle}>
+          عدد الذكور
+          <input
+            type="number"
+            value={maleCount}
+            onChange={(e) => setMaleCount(Number(e.target.value))}
+            style={inputStyle}
+            min={0}
+          />
+        </label>
+
+        <label style={labelStyle}>
+          عدد الإناث
+          <input
+            type="number"
+            value={femaleCount}
+            onChange={(e) => setFemaleCount(Number(e.target.value))}
+            style={inputStyle}
+            min={0}
+          />
+        </label>
+
+        <label style={labelStyle}>
+          المجموع (يُحسب تلقائيًا)
+          <input
+            type="number"
+            value={maleCount + femaleCount}
+            style={{ ...inputStyle, background: '#f0f0f0' }}
+            disabled
+          />
+        </label>
+
         <label style={labelStyle}>
           السنة *
           <select
@@ -265,17 +307,7 @@ function ClassForm({
           </select>
         </label>
 
-        <label style={labelStyle}>
-          عدد التلاميذ
-          <input
-            type="number"
-            value={studentCount}
-            onChange={(e) => setStudentCount(Number(e.target.value))}
-            style={inputStyle}
-            min={0}
-          />
-        </label>
-
+        
         {error && <div style={errorStyle}>{error}</div>}
 
         <div style={{ display: 'flex', gap: 10, marginTop: 15 }}>
